@@ -1,23 +1,29 @@
-
+import logging
 import os
 import uuid
 from datetime import date
+from pathlib import Path
+from typing import Annotated
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from sqlalchemy import (
-    create_engine, String, Integer, Date,
-    ForeignKey, select
-)
+from sqlalchemy import Date, ForeignKey, Integer, String, create_engine, select
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import (
-    DeclarativeBase, Mapped, mapped_column,
-    sessionmaker, Session
+    DeclarativeBase,
+    Mapped,
+    Session,
+    mapped_column,
+    sessionmaker,
 )
-from sqlalchemy.exc import IntegrityError
+
+logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+psycopg://hotel_app:hotel_pass@localhost:5432/hotel_booking"
+    "postgresql+psycopg://hotel_app:hotel_pass@localhost:5432/hotel_booking",
 )
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
@@ -40,9 +46,7 @@ class Reservation(Base):
     __tablename__ = "reservations"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    booking_reference: Mapped[str] = mapped_column(
-        String(40), unique=True, index=True
-    )
+    booking_reference: Mapped[str] = mapped_column(String(40), unique=True, index=True)
     customer_name: Mapped[str] = mapped_column(String(100))
     room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"))
     check_in: Mapped[date] = mapped_column(Date)
@@ -60,8 +64,11 @@ class BookingRequest(BaseModel):
 app = FastAPI(
     title="Hotel Booking API",
     description="Room availability and reservation service",
-    version="1.0.0"
+    version="1.0.0",
 )
+
+STATIC_DIR = Path(__file__).parent / "static"
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 def get_db():
@@ -72,18 +79,23 @@ def get_db():
         db.close()
 
 
+DBSession = Annotated[Session, Depends(get_db)]
+
+
 def initialize_database():
     Base.metadata.create_all(bind=engine)
 
     with SessionLocal() as db:
         if db.scalar(select(Room.id).limit(1)) is None:
-            db.add_all([
-                Room(room_type="Standard", price=2000),
-                Room(room_type="Standard", price=2000),
-                Room(room_type="Deluxe", price=3500),
-                Room(room_type="Deluxe", price=3500),
-                Room(room_type="Suite", price=5000),
-            ])
+            db.add_all(
+                [
+                    Room(room_type="Standard", price=2000),
+                    Room(room_type="Standard", price=2000),
+                    Room(room_type="Deluxe", price=3500),
+                    Room(room_type="Deluxe", price=3500),
+                    Room(room_type="Suite", price=5000),
+                ]
+            )
             db.commit()
 
 
@@ -94,16 +106,20 @@ def startup():
 
 @app.get("/")
 def home():
-    return {"message": "Hotel Booking API is running"}
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.get("/health")
-def health(db: Session = Depends(get_db)):
+def health(db: DBSession):
     try:
         db.execute(select(Room.id).limit(1))
         return {"status": "healthy", "database": "connected"}
-    except Exception:
-        raise HTTPException(status_code=503, detail="Database unavailable")
+    except SQLAlchemyError:
+        logger.exception("Database health check failed")
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable",
+        )
 
 
 @app.get("/availability")
@@ -111,25 +127,25 @@ def availability(
     check_in: date,
     check_out: date,
     room_type: str,
-    db: Session = Depends(get_db)
+    db: DBSession,
 ):
     if check_out <= check_in:
         raise HTTPException(400, "Check-out must be after check-in")
 
-    rooms = db.scalars(
-        select(Room).where(Room.room_type == room_type)
-    ).all()
+    rooms = db.scalars(select(Room).where(Room.room_type == room_type)).all()
 
     available = []
 
     for room in rooms:
         conflict = db.scalar(
-            select(Reservation.id).where(
+            select(Reservation.id)
+            .where(
                 Reservation.room_id == room.id,
                 Reservation.status == "confirmed",
                 Reservation.check_in < check_out,
-                Reservation.check_out > check_in
-            ).limit(1)
+                Reservation.check_out > check_in,
+            )
+            .limit(1)
         )
 
         if conflict is None:
@@ -138,21 +154,20 @@ def availability(
     return {
         "room_type": room_type,
         "available": len(available) > 0,
-        "available_rooms": len(available)
+        "available_rooms": len(available),
     }
 
 
 @app.post("/reservations", status_code=201)
 def create_reservation(
     request: BookingRequest,
-    db: Session = Depends(get_db)
+    db: DBSession,
 ):
     if request.check_out <= request.check_in:
         raise HTTPException(400, "Invalid date range")
 
     try:
         with db.begin():
-            # Lock matching room rows to serialize competing bookings.
             rooms = db.scalars(
                 select(Room)
                 .where(Room.room_type == request.room_type)
@@ -167,12 +182,14 @@ def create_reservation(
 
             for room in rooms:
                 conflict = db.scalar(
-                    select(Reservation.id).where(
+                    select(Reservation.id)
+                    .where(
                         Reservation.room_id == room.id,
                         Reservation.status == "confirmed",
                         Reservation.check_in < request.check_out,
-                        Reservation.check_out > request.check_in
-                    ).limit(1)
+                        Reservation.check_out > request.check_in,
+                    )
+                    .limit(1)
                 )
 
                 if conflict is None:
@@ -180,7 +197,10 @@ def create_reservation(
                     break
 
             if selected_room is None:
-                raise HTTPException(409, "No rooms available for these dates")
+                raise HTTPException(
+                    409,
+                    "No rooms available for these dates",
+                )
 
             reference = "HTL-" + uuid.uuid4().hex[:10].upper()
 
@@ -190,7 +210,7 @@ def create_reservation(
                 room_id=selected_room.id,
                 check_in=request.check_in,
                 check_out=request.check_out,
-                status="confirmed"
+                status="confirmed",
             )
 
             db.add(booking)
@@ -202,8 +222,12 @@ def create_reservation(
             "room_type": request.room_type,
             "check_in": request.check_in,
             "check_out": request.check_out,
-            "status": "confirmed"
+            "status": "confirmed",
         }
 
     except IntegrityError:
-        raise HTTPException(409, "Booking conflict. Please retry.")
+        logger.exception("Reservation integrity conflict")
+        raise HTTPException(
+            409,
+            "Booking conflict. Please retry.",
+        )

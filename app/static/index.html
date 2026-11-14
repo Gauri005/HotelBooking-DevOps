@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GrandStay - find a refined, comfortable stay for your next journey.">
+  <title>GrandStay | Find Your Perfect Stay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav container" aria-label="Main navigation">
+      <a class="brand" href="#home" aria-label="GrandStay home">
+        <span class="brand-mark" aria-hidden="true">G</span>
+        <span>Grand<span>Stay</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-menu">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Open menu</span>
+      </button>
+      <div class="nav-links" id="primary-menu">
+        <a href="#home">Home</a>
+        <a href="#rooms">Rooms</a>
+        <a href="#availability">Check Availability</a>
+        <a href="#booking">My Booking</a>
+      </div>
+      <a class="nav-cta" href="#booking">Book your stay <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-overlay"></div>
+      <div class="container hero-content">
+        <p class="eyebrow light">A considered stay, beautifully made</p>
+        <h1>Find Your<br><em>Perfect Stay</em></h1>
+        <p class="hero-copy">A warm welcome, thoughtful details, and the space to make every moment yours.</p>
+        <a class="text-link light-link" href="#rooms">Explore our rooms <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="scroll-hint" aria-hidden="true"><span></span> Scroll to explore</div>
+    </section>
+
+    <section class="search-panel-wrap" id="availability">
+      <div class="container">
+        <form class="search-panel" id="availability-form">
+          <div class="field-group">
+            <label for="search-check-in">Check-in</label>
+            <input id="search-check-in" name="check_in" type="date" required>
+          </div>
+          <div class="field-group">
+            <label for="search-check-out">Check-out</label>
+            <input id="search-check-out" name="check_out" type="date" required>
+          </div>
+          <div class="field-group">
+            <label for="search-room-type">Room type</label>
+            <select id="search-room-type" name="room_type" required>
+              <option value="Standard">Standard Room</option>
+              <option value="Deluxe">Deluxe Room</option>
+              <option value="Suite">Suite</option>
+            </select>
+          </div>
+          <button class="button button-dark" type="submit">
+            <span>Search availability</span><span aria-hidden="true">→</span>
+          </button>
+        </form>
+        <p class="form-message" id="availability-message" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="intro-section container">
+      <div>
+        <p class="eyebrow">The GrandStay difference</p>
+        <h2>More than a room.<br><em>A feeling.</em></h2>
+      </div>
+      <p class="intro-copy">From the first cup of coffee to the last light through your window, GrandStay is designed for unhurried mornings, deep rest, and the little details that stay with you.</p>
+    </section>
+
+    <section class="rooms-section section-pad container" id="rooms">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Stay your way</p>
+          <h2>Rooms with <em>character</em></h2>
+        </div>
+        <p>Every room is a quiet retreat, layered with natural textures and considered comfort.</p>
+      </div>
+      <div class="room-grid">
+        <article class="room-card" data-room-type="Standard">
+          <div class="room-image room-standard">
+            <span class="room-status" data-status-for="Standard">Select dates to check</span>
+          </div>
+          <div class="room-card-body">
+            <p class="card-kicker">01 / The essential</p>
+            <h3>Standard Room</h3>
+            <p>A calm, light-filled space with everything you need to settle in and switch off.</p>
+            <button class="outline-button book-room" type="button" data-room="Standard">Book this room <span aria-hidden="true">↗</span></button>
+          </div>
+        </article>
+        <article class="room-card room-card-featured" data-room-type="Deluxe">
+          <div class="room-image room-deluxe">
+            <span class="room-status" data-status-for="Deluxe">Select dates to check</span>
+          </div>
+          <div class="room-card-body">
+            <p class="card-kicker">02 / The elevated</p>
+            <h3>Deluxe Room</h3>
+            <p>More room to breathe, with a thoughtful sitting area and views that invite you to linger.</p>
+            <button class="outline-button book-room" type="button" data-room="Deluxe">Book this room <span aria-hidden="true">↗</span></button>
+          </div>
+        </article>
+        <article class="room-card" data-room-type="Suite">
+          <div class="room-image room-suite">
+            <span class="room-status" data-status-for="Suite">Select dates to check</span>
+          </div>
+          <div class="room-card-body">
+            <p class="card-kicker">03 / The retreat</p>
+            <h3>Suite</h3>
+            <p>A generous private haven with distinct spaces for slow mornings and late evenings.</p>
+            <button class="outline-button book-room" type="button" data-room="Suite">Book this room <span aria-hidden="true">↗</span></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="booking-section" id="booking">
+      <div class="container booking-layout">
+        <div class="booking-copy">
+          <p class="eyebrow light">Make it yours</p>
+          <h2>Ready when<br><em>you are.</em></h2>
+          <p>Tell us a little about your stay and let GrandStay take care of the rest.</p>
+          <div class="booking-detail"><span>01</span><p>Flexible check-in<br><strong>Arrive at your own pace</strong></p></div>
+          <div class="booking-detail"><span>02</span><p>Thoughtful spaces<br><strong>Comfort in every corner</strong></p></div>
+        </div>
+        <div class="booking-card">
+          <div class="card-heading">
+            <p class="eyebrow">Reserve your room</p>
+            <h3>Your stay starts here.</h3>
+          </div>
+          <form id="booking-form">
+            <div class="field-group">
+              <label for="customer-name">Your name</label>
+              <input id="customer-name" name="customer_name" type="text" minlength="2" maxlength="100" placeholder="e.g. Alex Morgan" required>
+            </div>
+            <div class="form-row">
+              <div class="field-group">
+                <label for="booking-room-type">Room type</label>
+                <select id="booking-room-type" name="room_type" required>
+                  <option value="Standard">Standard Room</option>
+                  <option value="Deluxe">Deluxe Room</option>
+                  <option value="Suite">Suite</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="booking-check-in">Check-in</label>
+                <input id="booking-check-in" name="check_in" type="date" required>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="booking-check-out">Check-out</label>
+              <input id="booking-check-out" name="check_out" type="date" required>
+            </div>
+            <button class="button button-gold button-full" id="booking-submit" type="submit">
+              <span class="button-label">Confirm reservation</span>
+              <span class="button-spinner" aria-hidden="true"></span>
+            </button>
+            <p class="form-message" id="booking-message" role="alert" aria-live="polite"></p>
+          </form>
+          <div class="confirmation" id="confirmation" hidden>
+            <div class="confirmation-icon" aria-hidden="true">✓</div>
+            <p class="eyebrow">Reservation confirmed</p>
+            <h3>We’ll see you soon.</h3>
+            <p id="confirmation-reference"></p>
+            <dl class="confirmation-details">
+              <div><dt>Guest</dt><dd id="confirmation-name"></dd></div>
+              <div><dt>Room</dt><dd id="confirmation-room"></dd></div>
+              <div><dt>Dates</dt><dd id="confirmation-dates"></dd></div>
+            </dl>
+            <button class="text-link dark-link" id="new-booking" type="button">Make another reservation <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-main">
+      <div class="footer-brand">
+        <a class="brand brand-light" href="#home"><span class="brand-mark" aria-hidden="true">G</span><span>Grand<span>Stay</span></span></a>
+        <p>Stay somewhere that feels<br>like it was made for you.</p>
+      </div>
+      <div class="footer-links">
+        <p class="footer-label">Explore</p>
+        <a href="#home">Home</a><a href="#rooms">Rooms</a><a href="#availability">Availability</a><a href="#booking">My Booking</a>
+      </div>
+      <div class="footer-contact">
+        <p class="footer-label">Contact <small>(demo details)</small></p>
+        <a href="mailto:hello@grandstay.example">hello@grandstay.example</a>
+        <p>+1 (000) 555-0199<br>123 Example Avenue, Your City</p>
+      </div>
+    </div>
+    <div class="container footer-bottom"><span>© 2026 GrandStay. All rights reserved.</span><span>Made for memorable stays.</span></div>
+  </footer>
+  <script src="/static/script.js" defer></script>
+</body>
+</html>
