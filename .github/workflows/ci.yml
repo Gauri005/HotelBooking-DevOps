@@ -1,0 +1,53 @@
+
+name: Hotel Booking CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: hotel_booking
+          POSTGRES_USER: hotel_app
+          POSTGRES_PASSWORD: hotel_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hotel_app -d hotel_booking"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://hotel_app:hotel_pass@localhost:5432/hotel_booking
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run automated tests
+        run: pytest -v
+
+      - name: Build Docker image
+        run: docker build -t hotel-booking:${{ github.sha }} .
+
+      - name: Show image
+        run: docker images hotel-booking

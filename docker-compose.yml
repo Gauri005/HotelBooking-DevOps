@@ -1,0 +1,49 @@
+
+services:
+  db:
+    image: postgres:16
+    container_name: hotel-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hotel_booking
+      POSTGRES_USER: hotel_app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-hotel_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotel_app -d hotel_booking"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - hotel-network
+
+  app:
+    build: .
+    container_name: hotel-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://hotel_app:${DB_PASSWORD:-hotel_pass}@db:5432/hotel_booking
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hotel-network
+
+volumes:
+  postgres_data:
+
+networks:
+  hotel-network:
+    driver: bridge
